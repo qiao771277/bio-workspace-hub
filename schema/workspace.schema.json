@@ -1,0 +1,256 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://local/ws-hub/workspace.schema.json",
+  "title": "WS-HUB workspace snapshot v1",
+  "description": "一台机器 + 一个工作区的一次扫描结果。所有机器必须产出结构一致的 JSON，dashboard 才能汇总。",
+  "type": "object",
+  "required": ["schema_version", "run", "workspace", "projects"],
+  "additionalProperties": true,
+  "properties": {
+    "schema_version": { "const": "1.0" },
+
+    "run": {
+      "type": "object",
+      "required": ["run_id", "started_at", "finished_at"],
+      "properties": {
+        "run_id": {
+          "type": "string",
+          "description": "文件名安全的时间戳, 形如 2026-10-31T10-20-00Z (ISO8601 的冒号换横线)。history 目录用它排序。"
+        },
+        "started_at": { "type": "string", "description": "ISO8601 UTC, 例 2026-10-31T10:00:00Z" },
+        "finished_at": { "type": "string" },
+        "tool": { "type": "string", "description": "例 opencode / claude-code / 手工" },
+        "model": { "type": "string" },
+        "mode": { "enum": ["full", "incremental"], "description": "full=首次全量; incremental=基于上次 latest.json 增改" },
+        "budget_cut": { "type": "boolean", "description": "true 表示因时间/步数上限提前收尾, 部分项目 confidence 会偏低" },
+        "previous_run_id": { "type": "string", "description": "本次增量基于哪一次 run" }
+    },
+
+    "workspace": {
+      "type": "object",
+      "required": ["id", "label", "machine", "os", "root"],
+      "properties": {
+        "id": {
+          "type": "string",
+          "pattern": "^[a-z0-9][a-z0-9-]{1,30}$",
+          "description": "稳定短 id, 全 hub 唯一, 建议 win-main / win-alt / linux-1。不要用时间或随机数。"
+        },
+        "label": { "type": "string", "description": "给人看的中文名" },
+        "machine": { "type": "string", "description": "hostname" },
+        "os": { "enum": ["windows", "linux", "macos", "wsl"] },
+        "root": { "type": "string", "description": "本次扫描的根目录绝对路径" },
+        "root_display": { "type": "string", "description": "脱敏/简写路径, 如 ~/Documents/work 或 D:/projects" },
+        "extra_roots": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "除 root 外顺带扫的目录 (别的盘、Desktop 等)"
+        },
+        "counts": {
+          "type": "object",
+          "properties": {
+            "projects": { "type": "integer" },
+            "loose_assets": { "type": "integer" },
+            "files_scanned": { "type": "integer" },
+            "bytes": { "type": "integer" }
+          }
+        },
+        "disk": {
+          "type": "object",
+          "properties": {
+            "free_bytes": { "type": "integer" },
+            "total_bytes": { "type": "integer" }
+          },
+          "description": "可选。磁盘紧张时 dashboard 会提示。"
+        },
+        "notes": { "type": "string", "description": "这台机器的整体情况: 用途、和别的机器的分工、明显的坑" }
+      }
+    },
+
+    "projects": {
+      "type": "array",
+      "items": { "$ref": "#/definitions/project" }
+    },
+
+    "loose_assets": {
+      "type": "array",
+      "description": "不成项目的散件: 单文件脚本、图、表格、下载物。这是最容易丢的东西, 必须收录。",
+      "items": {
+        "type": "object",
+        "required": ["path", "kind"],
+        "properties": {
+          "path": { "type": "string" },
+          "kind": { "enum": ["script", "figure", "table", "document", "dataset", "archive", "binary", "other"] },
+          "what": { "type": "string", "description": "这是什么、谁在用、属于哪个项目(如果属于某项目就写项目 id)" },
+          "belongs_to": { "type": "string", "description": "项目 id, 可空" },
+          "size_bytes": { "type": "integer" },
+          "last_modified": { "type": "string" },
+          "keep": { "enum": ["keep", "review", "delete", "unknown"] }
+        }
+      }
+    },
+
+    "cross_project": {
+      "type": "array",
+      "description": "本机内部的跨项目关系(共享数据、同一课题的不同阶段等)。跨机器的关系在 master 汇总时由 dashboard 合并。",
+      "items": { "$ref": "#/definitions/relation" }
+    },
+
+    "gaps": {
+      "type": "array",
+      "description": "没查清 / 缺信息 / 需要人确认的地方。宁可写进来, 不要编。",
+      "items": {
+        "type": "object",
+        "properties": {
+          "severity": { "enum": ["low", "medium", "high"] },
+          "about": { "type": "string", "description": "项目 id 或路径, 可空" },
+          "text": { "type": "string" }
+        }
+      }
+    }
+  },
+
+  "definitions": {
+    "project": {
+      "type": "object",
+      "required": ["id", "name", "path", "kind", "status", "one_liner", "story"],
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "稳定 id, 规则: <workspace_id>--<路径 slug>。例 win-main--smorf-pro。跨次运行必须不变, 否则历史会断。"
+        },
+        "name": { "type": "string", "description": "短名, 默认用目录名, 可美化成人类可读" },
+        "path": { "type": "string", "description": "绝对路径 (dashboard 显示时可脱敏)" },
+        "rel_path": { "type": "string", "description": "相对 workspace.root 的路径" },
+        "kind": { "enum": ["code", "data", "doc", "model", "experiment", "infra", "mixed", "unknown"] },
+        "category": {
+          "enum": ["amp", "data-tools", "paper", "admin", "learning", "other"],
+          "description": "顶层大类，用于看板的分类索引。amp=抗菌肽主课题；data-tools=公共数据/方法/工具/参考库；paper=论文、图表、投稿、审稿等学术产出；admin=行政事务（招生、排班、订购、考核、杂项）；learning=学习资料（书、课程、教程）；other=未分类。"
+        },
+        "status": { "enum": ["active", "paused", "experiment", "archived", "abandoned", "unknown"] },
+        "one_liner": { "type": "string", "description": "一句话说清它干什么 (<=40 字)" },
+        "story": {
+          "type": "string",
+          "description": "来龙去脉, 3-8 句: 为什么建、解决什么问题、从哪来(自建/克隆/派生/别人给的)、做到哪一步、卡在哪、下一步。只写有证据的, 不确定就写'未确认'。"
+        },
+        "origin": {
+          "type": "object",
+          "description": "项目从哪来 —— 这是'来龙去脉'的骨架",
+          "properties": {
+            "type": { "enum": ["scratch", "clone", "fork", "derived", "imported", "unknown"] },
+            "from": { "type": "string", "description": "URL / 项目 id / 人名 / '课程作业' 等" },
+            "first_commit_at": { "type": "string" },
+            "first_commit_msg": { "type": "string" },
+            "created_at_fs": { "type": "string", "description": "无 git 时用最早文件时间近似" },
+            "evidence": { "type": "string", "description": "依据: 'README 提到 GitHub 链接' / '.git 首提交' / '无证据, 推测'" }
+          }
+        },
+        "tech": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "语言/框架/工具, 小写: python, r, shiny, pytorch, docx, excel, shell..."
+        },
+        "entry_points": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "怎么跑起来: 'python build_x.py', 'R -e shiny::runApp(\"app.R\")'"
+        },
+        "key_files": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "path": { "type": "string" },
+              "why": { "type": "string", "description": "一句话: 这个文件为什么重要" }
+            }
+          }
+        },
+        "data": {
+          "type": "object",
+          "description": "'数据' 部分: 有没有数据、什么格式、多大、敏感不敏感、从哪来",
+          "properties": {
+            "summary": { "type": "string", "description": "2-3 句: 数据是什么、量级、是否在本地、是否需要重下" },
+            "in_repo": { "type": "boolean", "description": "数据是否和数据同目录/是否随仓库走" },
+            "assets": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "path": { "type": "string" },
+                  "type": { "enum": ["csv", "tsv", "parquet", "excel", "json", "image", "text", "db", "weights", "binary", "unknown"] },
+                  "size_bytes": { "type": "integer" },
+                  "note": { "type": "string" },
+                  "sensitive": { "type": "boolean", "description": "含个人信息/受试者/未发表结果/密钥 => true" }
+                }
+              }
+            },
+            "total_bytes": { "type": "integer" }
+          }
+        },
+        "activity": {
+          "type": "object",
+          "properties": {
+            "last_modified": { "type": "string", "description": "目录内最新文件 mtime (ISO)" },
+            "last_commit_at": { "type": "string" },
+            "commits": { "type": "integer" },
+            "dirty": { "type": "boolean", "description": "有未提交改动" },
+            "branches": { "type": "integer" },
+            "tags": { "type": "array", "items": { "type": "string" } }
+          }
+        },
+        "git": {
+          "type": "object",
+          "properties": {
+            "is_repo": { "type": "boolean" },
+            "remote": { "type": "string", "description": "去掉 URL 里的账号密码" },
+            "default_branch": { "type": "string" }
+          }
+        },
+        "size": {
+          "type": "object",
+          "properties": {
+            "files": { "type": "integer" },
+            "bytes": { "type": "integer" }
+          }
+        },
+        "relations": {
+          "type": "array",
+          "items": { "$ref": "#/definitions/relation" }
+        },
+        "risks": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "会让人踩坑的事: 硬编码桌面临时目录、依赖缺失、数据未备份、只有一份 Excel、路径写死在本机..."
+        },
+        "next_steps": { "type": "array", "items": { "type": "string" } },
+        "todo_markers": { "type": "integer", "description": "代码/文档里 TODO/FIXME/XXX 的数量" },
+        "confidence": { "enum": ["high", "medium", "low"], "description": "对整个条目的把握程度" },
+        "evidence": {
+          "type": "array",
+          "description": "关键结论的出处, 防止 LLM 编故事",
+          "items": {
+            "type": "object",
+            "properties": {
+              "claim": { "type": "string" },
+              "source": { "type": "string", "description": "相对文件路径 或 'git log' 或 '目录结构'" }
+            }
+          }
+        },
+        "tags": { "type": "array", "items": { "type": "string" }, "description": "自由标签: 科研, 教学, 行政, 论文, 工具..." },
+        "hidden": { "type": "boolean", "description": "true 则 dashboard 默认隐藏(敏感/私人)" }
+      }
+    },
+
+    "relation": {
+      "type": "object",
+      "required": ["type", "target"],
+      "properties": {
+        "type": {
+          "enum": ["derived_from", "supersedes", "duplicate_of", "depends_on", "shares_data_with", "same_project"],
+          "description": "derived_from=从它改的; supersedes=取代; duplicate_of=同一东西的副本; depends_on=运行依赖; shares_data_with=共用数据; same_project=同一课题的不同实现"
+        },
+        "target": { "type": "string", "description": "目标项目 id (可为其它机器的 id)" },
+        "note": { "type": "string" }
+      }
+    }
+  }
+}

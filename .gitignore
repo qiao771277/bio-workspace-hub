@@ -1,0 +1,19 @@
+# 个人采集数据：只留在本机，不进仓库
+/workspaces/
+!/examples/workspaces/
+/data.json
+/dashboard.html
+/INDEX.md
+/decisions.json
+/serve.config.json
+
+# 本地服务与日志
+tools/*.log
+tools/.server.json
+tools/.open.lock
+*.tmp
+*.bak
+Thumbs.db
+.DS_Store
+desktop.ini
+~$*

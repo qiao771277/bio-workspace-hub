@@ -1,0 +1,262 @@
+{
+  "schema_version": "1.0",
+  "run": {
+    "run_id": "2026-11-01T22-00-00Z",
+    "started_at": "2026-11-01T21:45:00Z",
+    "finished_at": "2026-11-01T22:00:00Z",
+    "tool": "opencode",
+    "model": "demo",
+    "mode": "full",
+    "budget_cut": false,
+    "previous_run_id": null
+  },
+  "workspace": {
+    "id": "wsl",
+    "label": "WSL · Ubuntu",
+    "machine": "DEMO-PC (WSL2)",
+    "os": "wsl",
+    "root": "/home/demo",
+    "root_display": "/home/demo",
+    "extra_roots": [],
+    "counts": {
+      "projects": 3,
+      "loose_assets": 1,
+      "files_scanned": 9000,
+      "bytes": 21000000000
+    },
+    "disk": {
+      "total_bytes": 250000000000,
+      "free_bytes": 40000000000
+    },
+    "notes": "示例数据：和笔记本同一台机器的 WSL2 发行版，放序列工具和小规模批处理。"
+  },
+  "projects": [
+    {
+      "kind": "experiment",
+      "status": "active",
+      "category": "defensin",
+      "tech": [
+        "python",
+        "signalp6"
+      ],
+      "tags": [
+        "科研",
+        "防御素"
+      ],
+      "relations": [
+        {
+          "type": "depends_on",
+          "target": "laptop--defensin-screen",
+          "note": "输入来自笔记本筛选结果"
+        }
+      ],
+      "risks": [
+        "slow 模式太慢，全量要 10 小时",
+        "模型权重不在仓库里"
+      ],
+      "next_steps": [
+        "试试 fast 模式看能否接受"
+      ],
+      "evidence": [
+        {
+          "claim": "按 500 条分批",
+          "source": "run_batch.sh"
+        }
+      ],
+      "key_files": [
+        {
+          "path": "run_batch.sh",
+          "why": "分批提交与断点续跑"
+        }
+      ],
+      "entry_points": [
+        "bash run_batch.sh"
+      ],
+      "size": {
+        "files": 620,
+        "bytes": 2000000000
+      },
+      "data": {
+        "summary": "结果 2 GB，本地；模型权重另装。",
+        "in_repo": true,
+        "assets": [],
+        "total_bytes": 2000000000
+      },
+      "activity": {
+        "last_modified": "2026-11-01T23:30:00Z",
+        "last_commit_at": "",
+        "commits": 0,
+        "dirty": false,
+        "branches": 0,
+        "tags": []
+      },
+      "git": {
+        "is_repo": false,
+        "remote": "",
+        "default_branch": ""
+      },
+      "origin": {
+        "type": "derived",
+        "from": "laptop--defensin-screen 的输出",
+        "evidence": "输入路径"
+      },
+      "confidence": "high",
+      "hidden": false,
+      "id": "wsl--signalp-batch",
+      "name": "SignalP 批量预测",
+      "path": "/home/demo/signalp-batch",
+      "rel_path": "signalp-batch",
+      "one_liner": "对防御素候选批量跑信号肽预测",
+      "story": "把笔记本筛出来的防御素候选按 500 条一批送 SignalP 6，结果汇总成 `signalp.tsv`。slow 模式单条约 2 分钟，全量要跑一整晚。脚本用 nohup 挂着跑，日志按批号分文件。"
+    },
+    {
+      "kind": "experiment",
+      "status": "experiment",
+      "category": "mouse-riboseq",
+      "tech": [
+        "r",
+        "python",
+        "bedtools"
+      ],
+      "tags": [
+        "科研",
+        "Ribo-seq",
+        "方法"
+      ],
+      "relations": [
+        {
+          "type": "depends_on",
+          "target": "lab-server--riboseq-pipeline",
+          "note": "bam 来自服务器流程"
+        }
+      ],
+      "risks": [
+        "两套结果不一致，原因未查"
+      ],
+      "next_steps": [
+        "挑 20 条差异最大的 ORF 手工核对"
+      ],
+      "evidence": [
+        {
+          "claim": "重叠率约 72%",
+          "source": "compare.tsv"
+        }
+      ],
+      "key_files": [],
+      "entry_points": [],
+      "size": {
+        "files": 480,
+        "bytes": 18000000000
+      },
+      "data": {
+        "summary": "18 GB，本地；bam 来自服务器共享盘。",
+        "in_repo": true,
+        "assets": [],
+        "total_bytes": 18000000000
+      },
+      "activity": {
+        "last_modified": "2026-10-29T00:00:00Z",
+        "last_commit_at": "",
+        "commits": 0,
+        "dirty": false,
+        "branches": 0,
+        "tags": []
+      },
+      "git": {
+        "is_repo": false,
+        "remote": "",
+        "default_branch": ""
+      },
+      "origin": {
+        "type": "scratch",
+        "from": "对服务器结果做交叉验证",
+        "evidence": "bam 路径指向服务器"
+      },
+      "confidence": "medium",
+      "hidden": false,
+      "id": "wsl--orf-quant",
+      "name": "ORF 定量新方法对比",
+      "path": "/home/demo/orf-quant",
+      "rel_path": "orf-quant",
+      "one_liner": "拿两种 ORF 定量方法在同一批 bam 上对比",
+      "story": "服务器上两套定量结果不一致，这里用同一批 bam 重跑做对照：一套现成工具，一套自写脚本。目前跑完 6 个样本，两套的重叠率约 72%，差异还没查。目录里同时留着两个方法的原始输出，方便逐条对。"
+    },
+    {
+      "kind": "code",
+      "status": "paused",
+      "category": "infra",
+      "tech": [
+        "python",
+        "biopython"
+      ],
+      "tags": [
+        "基建",
+        "工具"
+      ],
+      "relations": [],
+      "risks": [
+        "无测试无文档"
+      ],
+      "next_steps": [
+        "加一个 README 说明每个脚本干什么"
+      ],
+      "evidence": [
+        {
+          "claim": "9 个脚本，无 README",
+          "source": "目录结构"
+        }
+      ],
+      "key_files": [],
+      "entry_points": [],
+      "size": {
+        "files": 9,
+        "bytes": 500000
+      },
+      "data": {
+        "summary": "不到 1 MB。",
+        "in_repo": true,
+        "assets": [],
+        "total_bytes": 500000
+      },
+      "activity": {
+        "last_modified": "2026-07-20T00:00:00Z",
+        "last_commit_at": "",
+        "commits": 0,
+        "dirty": false,
+        "branches": 0,
+        "tags": []
+      },
+      "git": {
+        "is_repo": false,
+        "remote": "",
+        "default_branch": ""
+      },
+      "origin": {
+        "type": "scratch",
+        "from": "日常积累",
+        "evidence": "脚本命名"
+      },
+      "confidence": "low",
+      "hidden": false,
+      "id": "wsl--seq-tools",
+      "name": "序列小工具",
+      "path": "/home/demo/seq-tools",
+      "rel_path": "seq-tools",
+      "one_liner": "FASTA 去重、长度过滤、六框翻译的小脚本",
+      "story": "日常用的几个一次性脚本，后来攒成一个目录：去重、按长度过滤、六框翻译、统计氨基酸组成。没有测试，也没有 README，靠文件名认。"
+    }
+  ],
+  "loose_assets": [
+    {
+      "path": "miniconda3",
+      "kind": "binary",
+      "what": "Python 环境（约 6 GB），不属于研究内容",
+      "belongs_to": "",
+      "size_bytes": 6000000000,
+      "last_modified": "2026-01-01T00:00:00Z",
+      "keep": "keep"
+    }
+  ],
+  "cross_project": [],
+  "gaps": []
+}

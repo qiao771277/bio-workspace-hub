@@ -1,0 +1,4 @@
+{
+  "_comment": "AI 问答面板使用哪个模型。留空则用 OpenCode 的默认模型；也可以用环境变量 WS_HUB_MODEL 覆盖。",
+  "model": ""
+}

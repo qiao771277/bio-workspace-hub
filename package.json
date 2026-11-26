@@ -1,0 +1,16 @@
+{
+  "name": "bio-workspace-hub",
+  "version": "1.0.0",
+  "description": "生信项目流程管理工具：把散在多台机器上的项目、数据、流程盘成一张可搜索、可编辑、可问答的索引看板",
+  "type": "module",
+  "license": "MIT",
+  "engines": { "node": ">=18" },
+  "scripts": {
+    "build": "node tools/build.mjs",
+    "demo": "node tools/build.mjs --demo",
+    "demo:data": "node tools/make-demo.mjs",
+    "serve": "node tools/serve.mjs"
+  },
+  "keywords": ["bioinformatics", "workspace", "project-management", "dashboard", "provenance"],
+  "files": ["tools", "templates", "schema", "prompts", "examples", "taxonomy.json", "README.md", "LICENSE"]
+}
