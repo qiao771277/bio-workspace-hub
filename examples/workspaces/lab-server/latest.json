@@ -21,7 +21,7 @@
       "/data/scratch"
     ],
     "counts": {
-      "projects": 4,
+      "projects": 5,
       "loose_assets": 1,
       "files_scanned": 48000,
       "bytes": 1800000000000
@@ -30,67 +30,67 @@
       "total_bytes": 8000000000000,
       "free_bytes": 900000000000
     },
-    "notes": "示例数据：一台 Linux 计算服务器，跑 Ribo-seq、质谱搜索和公共数据下载；磁盘常年在 90% 以上。"
+    "notes": "示例数据：一台 Linux 计算服务器，跑批量比对、变异检测和公共数据下载；磁盘常年在 90% 以上。"
   },
   "projects": [
     {
       "kind": "code",
       "status": "active",
-      "category": "mouse-riboseq",
+      "category": "rnaseq",
       "tech": [
-        "shell",
+        "snakemake",
         "star",
         "fastqc",
-        "r"
+        "shell"
       ],
       "tags": [
         "科研",
-        "Ribo-seq",
+        "转录组",
         "流程"
       ],
       "relations": [
         {
           "type": "shares_data_with",
-          "target": "wsl--orf-quant",
-          "note": "ORF 定量在 WSL 上试新方法"
+          "target": "laptop--rnaseq-de",
+          "note": "count 矩阵交给笔记本做差异分析"
         }
       ],
       "risks": [
         "/data/scratch 没有备份",
-        "config.sh 里路径写死"
+        "索引升级后旧结果未重跑"
       ],
       "next_steps": [
-        "把 config.sh 改成环境变量"
+        "用新索引把旧样本重跑一遍"
       ],
       "evidence": [
         {
-          "claim": "六步流水线 + 标记文件",
-          "source": "run.sh 第 20-60 行"
+          "claim": "Snakemake 四步流程",
+          "source": "Snakefile 的 rule 定义"
         }
       ],
       "key_files": [
         {
-          "path": "run.sh",
-          "why": "总入口，带断点续跑"
+          "path": "Snakefile",
+          "why": "流程主体"
         },
         {
-          "path": "config.sh",
-          "why": "路径与参数"
+          "path": "samples.tsv",
+          "why": "样本与分组"
         }
       ],
       "entry_points": [
-        "bash run.sh --sample S1"
+        "snakemake -j 16"
       ],
       "size": {
         "files": 3200,
         "bytes": 1400000000000
       },
       "data": {
-        "summary": "40 个样本的 bam 约 1.2 TB，在 /data/scratch；fastq 已删，可从公共库重下。",
+        "summary": "比对结果约 1.2 TB，在 /data/scratch；原始 fastq 在测序公司交付盘。",
         "in_repo": false,
         "assets": [
           {
-            "path": "/data/scratch/riboseq/bam",
+            "path": "/data/scratch/rnaseq/bam",
             "type": "binary",
             "size_bytes": 1200000000000,
             "note": "比对结果",
@@ -115,66 +115,65 @@
       "origin": {
         "type": "scratch",
         "from": "本组自建",
-        "evidence": "s1..s6 脚本 + 运行日志"
+        "evidence": "Snakefile + 运行日志"
       },
       "confidence": "high",
       "hidden": false,
-      "id": "lab-server--riboseq-pipeline",
-      "name": "Ribo-seq 分析流程",
-      "path": "/home/demo/work/riboseq",
-      "rel_path": "riboseq",
-      "one_liner": "从 fastq 到 ORF 定量的 S 步骤流水线",
-      "story": "一条 shell 流水线，按 s1_fastqc → s6_quant 命名，支持断点续跑：每一步写完就留标记，重跑会跳过。STAR 索引和人/鼠参考放在 ref/ 下。最近在把 ORFquant 换成自写脚本，两条并行跑，结果还没对齐。"
+      "id": "lab-server--rnaseq-pipeline",
+      "name": "批量 RNA-seq 流程",
+      "path": "/home/demo/work/rnaseq",
+      "rel_path": "rnaseq",
+      "one_liner": "从 fastq 到 count 矩阵的 Snakemake 流程",
+      "story": "Snakemake 写的批量流程：质控 → 去接头 → STAR 比对 → featureCounts。规则在 `Snakefile`，每个样本的配置在 `samples.tsv`。支持断点续跑，最近把比对索引换成了新版本，旧结果还在。"
     },
     {
-      "kind": "experiment",
+      "kind": "code",
       "status": "active",
-      "category": "crop-amp",
+      "category": "genomics",
       "tech": [
-        "dia-nn",
-        "python"
+        "gatk",
+        "bwa",
+        "shell"
       ],
       "tags": [
         "科研",
-        "作物",
-        "质谱"
+        "基因组"
       ],
       "relations": [
         {
           "type": "depends_on",
-          "target": "laptop--crop-sorf",
-          "note": "库来自笔记本上的统一表"
+          "target": "lab-server--ref-db",
+          "note": "用 ref/ 下的参考基因组与已知位点"
         }
       ],
       "risks": [
-        "第三个物种没跑",
-        "参数改过但没记录"
+        "过滤阈值照抄文献",
+        "只在 24 个样本上跑过"
       ],
       "next_steps": [
-        "补齐第三个物种",
-        "记录参数版本"
+        "用已知真阳性的样本评估过滤阈值"
       ],
       "evidence": [
         {
-          "claim": "只完成两个物种",
-          "source": "results/ 下两个物种目录"
+          "claim": "五步 GATK 流程",
+          "source": "run.sh 与日志"
         }
       ],
       "key_files": [
         {
-          "path": "params.txt",
-          "why": "DIA-NN 参数"
+          "path": "filter.sh",
+          "why": "硬过滤阈值"
         }
       ],
       "entry_points": [
-        "bash search.sh --species rice"
+        "bash run.sh --sample S01"
       ],
       "size": {
         "files": 890,
         "bytes": 380000000000
       },
       "data": {
-        "summary": "搜索中间产物 380 GB，在 /data/scratch；原始 raw 在质谱机房。",
+        "summary": "vcf 与 bam 约 380 GB，在 /data/scratch。",
         "in_repo": false,
         "assets": [],
         "total_bytes": 380000000000
@@ -194,22 +193,94 @@
       },
       "origin": {
         "type": "derived",
-        "from": "laptop--crop-sorf 的统一表",
-        "evidence": "输入路径指向共享目录"
+        "from": "GATK 官方流程",
+        "evidence": "README 里的流程链接"
       },
       "confidence": "medium",
       "hidden": false,
-      "id": "lab-server--crop-ms-search",
-      "name": "作物 sORF 质谱搜索",
-      "path": "/home/demo/work/crop-ms",
-      "rel_path": "crop-ms",
-      "one_liner": "三种作物 sORF 库的 DIA 搜索与假阳性过滤",
-      "story": "把笔记本上统一好的作物 sORF 表转成蛋白库，用 DIA-NN 搜三批数据，再用诱饵库估 FDR。目前只跑完两个物种，第三个的库还没建。搜索参数写在 `params.txt`，换过一次 precursor 容差。"
+      "id": "lab-server--variant-calling",
+      "name": "外显子变异检测",
+      "path": "/home/demo/work/wes-variants",
+      "rel_path": "wes-variants",
+      "one_liner": "WES 数据的 GATK 最佳实践流程",
+      "story": "按 GATK 最佳实践搭的流程：BWA → markdup → BQSR → HaplotypeCaller → 过滤。样本 24 个，跑完一轮约 18 小时。`filter.sh` 里的硬过滤阈值是按文献抄的，还没用自己的数据调。"
     },
     {
       "kind": "data",
       "status": "paused",
-      "category": "infra",
+      "category": "data",
+      "tech": [
+        "fasta",
+        "star",
+        "bwa"
+      ],
+      "tags": [
+        "数据",
+        "参考库"
+      ],
+      "relations": [
+        {
+          "type": "shares_data_with",
+          "target": "lab-server--variant-calling",
+          "note": "变异检测用它的人参考"
+        }
+      ],
+      "risks": [
+        "索引参数没记录",
+        "版本升级要重建"
+      ],
+      "next_steps": [
+        "把每个索引的构建命令写进 manifest"
+      ],
+      "evidence": [
+        {
+          "claim": "三个物种 + manifest",
+          "source": "ref/ 目录结构"
+        }
+      ],
+      "key_files": [],
+      "entry_points": [],
+      "size": {
+        "files": 61,
+        "bytes": 300000000000
+      },
+      "data": {
+        "summary": "约 300 GB，本地；可重下但索引重建很慢。",
+        "in_repo": false,
+        "assets": [],
+        "total_bytes": 300000000000
+      },
+      "activity": {
+        "last_modified": "2026-09-12T00:00:00Z",
+        "last_commit_at": "",
+        "commits": 0,
+        "dirty": false,
+        "branches": 0,
+        "tags": []
+      },
+      "git": {
+        "is_repo": false,
+        "remote": "",
+        "default_branch": ""
+      },
+      "origin": {
+        "type": "imported",
+        "from": "Ensembl / UCSC",
+        "evidence": "manifest.tsv"
+      },
+      "confidence": "medium",
+      "hidden": false,
+      "id": "lab-server--ref-db",
+      "name": "参考基因组与注释镜像",
+      "path": "/home/demo/work/ref",
+      "rel_path": "ref",
+      "one_liner": "常用物种的参考序列、注释与预建索引",
+      "story": "三个人/鼠/模式的参考基因组，每个目录下统一放 fasta、gtf、BWA 与 STAR 索引。`manifest.tsv` 记录版本与下载日期。索引是别人建好拷过来的，具体参数没留。"
+    },
+    {
+      "kind": "data",
+      "status": "paused",
+      "category": "data",
       "tech": [
         "shell",
         "sra"
@@ -272,12 +343,12 @@
       },
       "confidence": "medium",
       "hidden": false,
-      "id": "lab-server--public-datasets",
-      "name": "公共数据下载与整理",
+      "id": "lab-server--public-data",
+      "name": "公共数据下载清单",
       "path": "/home/demo/work/public-data",
       "rel_path": "public-data",
-      "one_liner": "下载的公共组学数据集与清单",
-      "story": "按项目号分目录存放下载的公共数据（转录组、蛋白组），根目录一个 `manifest.tsv` 记录来源、体积、下载日期和用途。最近一次下载是两个月前，manifest 有一半没填用途。"
+      "one_liner": "下载的公共组学数据集与用途登记",
+      "story": "按项目号分目录存公共数据，根目录 `manifest.tsv` 记录来源、体积、下载日期和用途。最近一次下载是两个月前，manifest 有一半没填用途。"
     },
     {
       "kind": "infra",
@@ -341,7 +412,7 @@
       },
       "confidence": "high",
       "hidden": false,
-      "id": "lab-server--cluster-templates",
+      "id": "lab-server--slurm-templates",
       "name": "集群作业模板",
       "path": "/home/demo/work/slurm-templates",
       "rel_path": "slurm-templates",
@@ -354,7 +425,7 @@
       "path": "/data/scratch/tmp",
       "kind": "dataset",
       "what": "跑完没清的中转目录，约 60 GB",
-      "belongs_to": "lab-server--riboseq-pipeline",
+      "belongs_to": "lab-server--rnaseq-pipeline",
       "size_bytes": 60000000000,
       "last_modified": "2026-10-31T00:00:00Z",
       "keep": "review"

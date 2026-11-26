@@ -24,6 +24,7 @@
         "mode": { "enum": ["full", "incremental"], "description": "full=首次全量; incremental=基于上次 latest.json 增改" },
         "budget_cut": { "type": "boolean", "description": "true 表示因时间/步数上限提前收尾, 部分项目 confidence 会偏低" },
         "previous_run_id": { "type": "string", "description": "本次增量基于哪一次 run" }
+      }
     },
 
     "workspace": {
@@ -116,15 +117,15 @@
       "properties": {
         "id": {
           "type": "string",
-          "description": "稳定 id, 规则: <workspace_id>--<路径 slug>。例 win-main--smorf-pro。跨次运行必须不变, 否则历史会断。"
+          "description": "稳定 id, 规则: <workspace_id>--<路径 slug>。例 win-main--rnaseq-pipeline。跨次运行必须不变, 否则历史会断。"
         },
         "name": { "type": "string", "description": "短名, 默认用目录名, 可美化成人类可读" },
         "path": { "type": "string", "description": "绝对路径 (dashboard 显示时可脱敏)" },
         "rel_path": { "type": "string", "description": "相对 workspace.root 的路径" },
         "kind": { "enum": ["code", "data", "doc", "model", "experiment", "infra", "mixed", "unknown"] },
         "category": {
-          "enum": ["amp", "data-tools", "paper", "admin", "learning", "other"],
-          "description": "顶层大类，用于看板的分类索引。amp=抗菌肽主课题；data-tools=公共数据/方法/工具/参考库；paper=论文、图表、投稿、审稿等学术产出；admin=行政事务（招生、排班、订购、考核、杂项）；learning=学习资料（书、课程、教程）；other=未分类。"
+          "enum": ["rnaseq", "proteomics", "genomics", "singlecell", "methods", "data", "infra", "paper", "admin", "learning", "other"],
+          "description": "顶层分类，用于看板的分组索引。实际取值以 hub 根目录 taxonomy.json 的 categories[].id 为准；这里是默认体系：rnaseq=转录组；proteomics=蛋白组；genomics=基因组与变异；singlecell=单细胞；methods=方法与流程；data=数据与参考库；infra=基建与工具；paper=论文与汇报；admin=行政事务；learning=学习资料；other=未分类。"
         },
         "status": { "enum": ["active", "paused", "experiment", "archived", "abandoned", "unknown"] },
         "one_liner": { "type": "string", "description": "一句话说清它干什么 (<=40 字)" },

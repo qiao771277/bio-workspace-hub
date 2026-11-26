@@ -21,81 +21,79 @@
     "counts": {
       "projects": 5,
       "loose_assets": 2,
-      "files_scanned": 1200,
+      "files_scanned": 1420,
       "bytes": 3400000000
     },
     "disk": {
       "total_bytes": 1000000000000,
       "free_bytes": 180000000000
     },
-    "notes": "示例数据：一台 Windows 笔记本，主要跑分析脚本、写论文图、做文献整理。"
+    "notes": "示例数据：一台 Windows 笔记本，主要写分析脚本、画图、整理实验记录和文献。"
   },
   "projects": [
     {
-      "kind": "mixed",
+      "kind": "code",
       "status": "active",
-      "category": "amp-candidate",
+      "category": "rnaseq",
       "tech": [
-        "python",
-        "pandas",
-        "rdkit"
+        "r",
+        "deseq2",
+        "ggplot2"
       ],
       "tags": [
         "科研",
-        "抗菌肽",
-        "筛选"
+        "转录组"
       ],
       "relations": [
         {
           "type": "depends_on",
-          "target": "lab-server--riboseq-pipeline",
-          "note": "候选来自服务器上的 Ribo-seq 流程"
+          "target": "lab-server--rnaseq-pipeline",
+          "note": "count 来自服务器上的比对流程"
         }
       ],
       "risks": [
-        "无版本控制，rank_v3 与 v2 的差异说不清",
-        "候选表靠手工更新，容易忘"
+        "三批数据参数不一致，结果不能直接合并",
+        "无版本控制"
       ],
       "next_steps": [
-        "把 rank_v3 收进 git",
-        "把每周更新做成脚本"
+        "把三批 config 统一，重跑一遍"
       ],
       "evidence": [
         {
           "claim": "脚本三版并存",
-          "source": "scripts/rank_v1.py, rank_v2.py, rank_v3.py"
+          "source": "de_v1.R / de_v2.R / de_v3.R"
         }
       ],
       "key_files": [
         {
-          "path": "scripts/rank_v3.py",
-          "why": "当前使用的排序脚本"
+          "path": "de_v3.R",
+          "why": "当前使用的差异分析脚本"
         },
         {
-          "path": "candidates.csv",
-          "why": "候选总表"
+          "path": "config.yaml",
+          "why": "批次与分组配置"
         }
       ],
       "entry_points": [
-        "python scripts/rank_v3.py --input candidates.csv"
+        "Rscript de_v3.R --config config.yaml"
       ],
       "size": {
-        "files": 96,
-        "bytes": 2400000000
+        "files": 84,
+        "bytes": 320000000
       },
       "data": {
-        "summary": "候选表约 12 万行，2.4 GB 的中间特征缓存在本地，可重算。",
+        "summary": "count 矩阵约 40 MB，本地；原始 fastq 在服务器上。",
         "in_repo": true,
         "assets": [
           {
-            "path": "candidates.csv",
-            "type": "csv",
-            "size_bytes": 8400000,
-            "note": "候选与打分",
-            "sensitive": true
+            "path": "counts.tsv",
+            "type": "tsv",
+            "size_bytes": 41000000,
+            "note": "基因 × 样本 count 矩阵",
+            "sensitive": false
           }
         ],
-        "total_bytes": 8400000
+        "total_bytes": 41000000
       },
       "activity": {
         "last_modified": "2026-10-28T09:12:00Z",
@@ -112,71 +110,129 @@
       },
       "origin": {
         "type": "scratch",
-        "from": "本课题自建",
+        "from": "本组数据分析",
         "evidence": "无 .git，脚本 mtime 连续"
       },
       "confidence": "high",
       "hidden": false,
-      "id": "laptop--amp-candidates",
-      "name": "候选抗菌肽筛选",
-      "path": "C:\\Users\\demo\\projects\\amp-candidates",
-      "rel_path": "amp-candidates",
-      "one_liner": "从 smORF 库里打分、筛出候选肽并排序",
-      "story": "整个课题的主入口：把 Ribo-seq 预测出来的小 ORF 转成肽段，按理化性质、保守性和预测活性打分，最后挑出一批送合成。脚本是边写边改的，`rank_v3.py` 是当前在用的版本，v1/v2 留着对照。候选表每周手动更新一次，没有版本控制。"
+      "id": "laptop--rnaseq-de",
+      "name": "转录组差异分析",
+      "path": "C:\\Users\\demo\\projects\\rnaseq-de",
+      "rel_path": "rnaseq-de",
+      "one_liner": "三批 RNA-seq 的差异分析与火山图",
+      "story": "DESeq2 的标准流程：读 count 矩阵 → 过滤低表达 → 差异检验 → 出火山图和热图。三个批次各有一份 `config.yaml` 记录分组，最近的批次改了过滤阈值，旧结果没重跑。脚本 `de_v3.R` 是当前版本，v1/v2 留着对照。"
     },
     {
-      "kind": "data",
+      "kind": "experiment",
       "status": "active",
-      "category": "crop-amp",
+      "category": "singlecell",
       "tech": [
-        "python",
-        "bedtools"
+        "r",
+        "seurat"
       ],
       "tags": [
         "科研",
-        "作物",
-        "sORF"
+        "单细胞",
+        "方法"
       ],
-      "relations": [
-        {
-          "type": "shares_data_with",
-          "target": "lab-server--crop-ms-search",
-          "note": "统一表是质谱搜索的输入库"
-        }
-      ],
+      "relations": [],
       "risks": [
-        "坐标体系不一致靠注释提醒，没有自动校验"
+        "只是参数试验，没有下游注释"
       ],
       "next_steps": [
-        "加一个坐标自检脚本"
+        "接自己的数据前先定好 marker 列表"
       ],
       "evidence": [
         {
-          "claim": "小麦坐标 0-based",
-          "source": "convert.py 第 38 行注释"
+          "claim": "试了 0.4-1.2 五档分辨率",
+          "source": "compare.md 表格"
         }
       ],
       "key_files": [
         {
-          "path": "convert.py",
-          "why": "三种格式归一化"
+          "path": "compare.md",
+          "why": "不同分辨率的结果对比"
         }
       ],
       "entry_points": [
-        "python convert.py"
+        "Rscript cluster.R --res 0.8"
       ],
       "size": {
         "files": 42,
         "bytes": 1200000000
       },
       "data": {
-        "summary": "统一表 1.2 GB，本地；原始预测结果在合作方那里。",
-        "in_repo": true,
+        "summary": "公开数据约 1.2 GB，本地缓存；可重下。",
+        "in_repo": false,
         "assets": [],
         "total_bytes": 1200000000
       },
       "activity": {
-        "last_modified": "2026-09-18T11:00:00Z",
+        "last_modified": "2026-10-15T16:00:00Z",
+        "last_commit_at": "",
+        "commits": 0,
+        "dirty": false,
+        "branches": 0,
+        "tags": []
+      },
+      "git": {
+        "is_repo": false,
+        "remote": "",
+        "default_branch": ""
+      },
+      "origin": {
+        "type": "derived",
+        "from": "公开数据集 + Seurat 官方流程",
+        "evidence": "README 里的数据来源链接"
+      },
+      "confidence": "medium",
+      "hidden": false,
+      "id": "laptop--singlecell-cluster",
+      "name": "单细胞聚类调参",
+      "path": "C:\\Users\\demo\\projects\\singlecell-cluster",
+      "rel_path": "singlecell-cluster",
+      "one_liner": "在公开数据集上比较几组聚类分辨率参数",
+      "story": "拿一份公开的单细胞数据试聚类参数：分辨率从 0.4 到 1.2 各跑一遍，看簇数和 marker 稳定性。结果写在 `compare.md` 里，0.8 看起来最稳。只是方法试验，还没有接自己的数据。"
+    },
+    {
+      "kind": "doc",
+      "status": "active",
+      "category": "learning",
+      "tech": [
+        "markdown",
+        "pdf"
+      ],
+      "tags": [
+        "学习",
+        "文献"
+      ],
+      "relations": [],
+      "risks": [
+        "笔记和 PDF 混放，找起来慢"
+      ],
+      "next_steps": [
+        "给每篇加统一 front-matter，方便检索"
+      ],
+      "evidence": [
+        {
+          "claim": "按主题分目录",
+          "source": "目录结构"
+        }
+      ],
+      "key_files": [],
+      "entry_points": [],
+      "size": {
+        "files": 132,
+        "bytes": 800000000
+      },
+      "data": {
+        "summary": "约 800 MB PDF 与笔记。",
+        "in_repo": true,
+        "assets": [],
+        "total_bytes": 800000000
+      },
+      "activity": {
+        "last_modified": "2026-10-30T21:00:00Z",
         "last_commit_at": "",
         "commits": 0,
         "dirty": false,
@@ -190,94 +246,17 @@
       },
       "origin": {
         "type": "imported",
-        "from": "三个物种的预测结果（合作方提供）",
-        "evidence": "输入文件命名 spec_a/spec_b/spec_c"
+        "from": "日常阅读",
+        "evidence": "目录结构"
       },
       "confidence": "medium",
       "hidden": false,
-      "id": "laptop--crop-sorf",
-      "name": "作物 sORF 注释整理",
-      "path": "C:\\Users\\demo\\projects\\crop-sorf",
-      "rel_path": "crop-sorf",
-      "one_liner": "把三种作物的 sORF 预测结果统一成一张表",
-      "story": "三个物种的预测结果格式各不相同（GFF、BED、CSV 各一套），这里写了一个转换脚本统一成 `species/chrom/start/end/seq`。小麦那批坐标是 0-based，和另外两个不一致，转换时专门做了 +1。统一后的表已经交给质谱那边做库。"
-    },
-    {
-      "kind": "data",
-      "status": "active",
-      "category": "defensin",
-      "tech": [
-        "python"
-      ],
-      "tags": [
-        "科研",
-        "防御素",
-        "筛选"
-      ],
-      "relations": [
-        {
-          "type": "shares_data_with",
-          "target": "wsl--signalp-batch",
-          "note": "筛出的序列送到 WSL 批量跑 SignalP"
-        }
-      ],
-      "risks": [
-        "阈值改过但没留版本"
-      ],
-      "next_steps": [
-        "把阈值写进 rules.md 并标注版本"
-      ],
-      "evidence": [
-        {
-          "claim": "规则是 6 个 Cys + C1-C6",
-          "source": "rules.md 第 2 节"
-        }
-      ],
-      "key_files": [
-        {
-          "path": "rules.md",
-          "why": "筛选规则说明"
-        }
-      ],
-      "entry_points": [
-        "python screen.py --rules rules.md"
-      ],
-      "size": {
-        "files": 18,
-        "bytes": 312000000
-      },
-      "data": {
-        "summary": "输入表 300 MB，结果 12 MB；都在本地。",
-        "in_repo": true,
-        "assets": [],
-        "total_bytes": 312000000
-      },
-      "activity": {
-        "last_modified": "2026-10-30T10:20:00Z",
-        "last_commit_at": "",
-        "commits": 0,
-        "dirty": false,
-        "branches": 0,
-        "tags": []
-      },
-      "git": {
-        "is_repo": false,
-        "remote": "",
-        "default_branch": ""
-      },
-      "origin": {
-        "type": "scratch",
-        "from": "本课题规则",
-        "evidence": "rules.md"
-      },
-      "confidence": "medium",
-      "hidden": false,
-      "id": "laptop--defensin-screen",
-      "name": "防御素候选筛选",
-      "path": "C:\\Users\\demo\\projects\\defensin-screen",
-      "rel_path": "defensin-screen",
-      "one_liner": "按半胱氨酸模式从大表里筛 β-防御素类似序列",
-      "story": "以六个经典人 β-防御素的半胱氨酸间距为模板，从十几万条候选里筛相似的。规则写在 `rules.md` 里：必须恰好 6 个 Cys、C1-C6 连接模式一致、长度 36-50 aa。筛完一轮后调过阈值，但没记录改了哪一版。"
+      "id": "laptop--reading-notes",
+      "name": "文献阅读笔记",
+      "path": "C:\\Users\\demo\\projects\\reading-notes",
+      "rel_path": "reading-notes",
+      "one_liner": "按主题整理的论文笔记与 PDF",
+      "story": "按主题分文件夹的论文笔记，每篇一个 md：一句话结论、方法要点、能不能用到自己课题。PDF 也放在一起，命名是「年份_期刊_关键词」。最近三个月只记了六篇。"
     }
   ],
   "loose_assets": [
@@ -291,11 +270,11 @@
       "keep": "review"
     },
     {
-      "path": "old_rank.py",
+      "path": "old_de.R",
       "kind": "script",
-      "what": "早期排序脚本，已被 scripts/rank_v3.py 取代",
-      "belongs_to": "laptop--amp-candidates",
-      "size_bytes": 8000,
+      "what": "早期差异分析脚本，已被 de_v3.R 取代",
+      "belongs_to": "laptop--rnaseq-de",
+      "size_bytes": 6000,
       "last_modified": "2026-05-12T00:00:00Z",
       "keep": "delete"
     }
@@ -304,13 +283,13 @@
   "gaps": [
     {
       "severity": "medium",
-      "about": "laptop--crop-sorf",
-      "text": "小麦坐标体系与另外两个物种不一致，转换时手工 +1，没有自动校验。"
+      "about": "laptop--rnaseq-de",
+      "text": "三个批次的过滤阈值不一致，合并前要先统一。"
     },
     {
       "severity": "low",
-      "about": "laptop--defensin-screen",
-      "text": "筛选阈值调整过，但没有记录版本。"
+      "about": "laptop--fig2-panel",
+      "text": "拼版宽度 190 mm，超过投稿要求的 180 mm。"
     }
   ]
 }

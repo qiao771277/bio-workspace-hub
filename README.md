@@ -2,7 +2,7 @@
 
 **把散在几台机器上的生信项目、数据、流程，盘成一张能搜、能看、能改、能问答的索引看板。**
 
-实验室里常见的样子：Ribo-seq 的 bam 在服务器、质谱搜索在另一台工作站、候选肽的表格在笔记本、论文图又在自己桌面。
+实验室里常见的样子：比对结果在服务器、分析任务在另一台工作站、整理好的表格在笔记本、论文图又在自己桌面。
 半年后你只记得「好像跑过」，但说不清哪个脚本是最终版、哪批数据还能删、这个课题到底做到哪一步。
 
 Bio Workspace Hub 补的就是这层**结构化记忆**：AI 只读地扫一遍每台机器，产出一份 JSON；汇总成一个**离线可用的单文件看板**。
@@ -23,7 +23,7 @@ Bio Workspace Hub 补的就是这层**结构化记忆**：AI 只读地扫一遍�
 
 **Bio Workspace Hub is a multi-machine workspace index for bioinformatics projects.**
 
-An AI agent scans each workspace read-only (Ribo-seq runs, MS searches, scripts, references) and writes one
+An AI agent scans each workspace read-only (sequencing runs, MS searches, scripts, references) and writes one
 `latest.json` per machine. `tools/build.mjs` merges them into a **single-file, offline dashboard** with topic
 grouping, full-text search, a relationship graph, a change timeline, inline editing, and an AI Q&A panel.
 No database, no server needed to view. Designed for research groups whose work sits on a laptop, a compute
@@ -96,11 +96,11 @@ node tools/build.mjs --demo     # 用内置示例数据生成 dashboard-demo.htm
 
 ```jsonc
 {
-  "groups": { "core": "核心课题", "collab": "合作课题", "other": "其他" },
+  "groups": { "core": "研究主线", "collab": "合作与共享", "other": "其他" },
   "categories": [
-    { "id": "amp-candidate", "label": "AMP 候选", "short": "AMP候选", "color": "#E64B35", "group": "core" },
-    { "id": "crop-amp",      "label": "作物 AMP 筛选", "short": "作物", "color": "#1B7837", "group": "core" },
-    { "id": "secretome",     "label": "分泌组 AMP", "short": "分泌组", "color": "#3C5488", "group": "collab" }
+    { "id": "rnaseq",     "label": "转录组",       "short": "转录组", "color": "#E64B35", "group": "core" },
+    { "id": "genomics",   "label": "基因组与变异", "short": "基因组", "color": "#1B7837", "group": "core" },
+    { "id": "methods",    "label": "方法与流程",   "short": "方法",   "color": "#3C5488", "group": "collab" }
   ]
 }
 ```
@@ -193,7 +193,7 @@ bio-workspace-hub/
 │  ├─ ask.ps1                     Windows 下调 OpenCode CLI 的包装
 │  ├─ install-shortcut.ps1        桌面图标
 │  └─ make-icon.ps1               图标生成
-├─ examples/workspaces/           示例数据（3 台虚构机器 / 12 个项目）
+├─ examples/workspaces/           示例数据（3 台虚构机器 / 13 个项目）
 └─ workspaces/                    你采集出来的真实数据（.gitignore）
 ```
 
@@ -206,7 +206,7 @@ bio-workspace-hub/
     "id": "laptop--demo-app",          // 稳定 id：机器--路径 slug，永远不改
     "name": "Demo App",
     "kind": "code",                    // code|data|doc|model|experiment|infra|mixed
-    "category": "amp-candidate",       // 取值见 taxonomy.json
+    "category": "rnaseq",              // 取值见 taxonomy.json
     "status": "active",                // active|paused|experiment|archived|abandoned
     "one_liner": "一句话",
     "story": "来龙去脉 3-8 句：为什么建、从哪来、做到哪、卡在哪",

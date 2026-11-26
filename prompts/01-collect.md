@@ -124,18 +124,18 @@ EXTRA_ROOTS = (可选，其它要顺带扫的目录，一行一个；没有就�
 
 ```jsonc
 {
-  "id": "win-main--smorf-pro",       // 规则见下，必须稳定
-  "name": "smORF-pro",               // 人类可读短名
-  "path": "C:\\...\\smORF-pro-main", // 绝对路径，反斜杠要转义
-  "rel_path": "smORF-pro-main",
+  "id": "win-main--rnaseq-pipeline",   // 规则见下，必须稳定
+  "name": "RNA-seq pipeline",          // 人类可读短名
+  "path": "C:\\...\\rnaseq-pipeline",  // 绝对路径，反斜杠要转义
+  "rel_path": "rnaseq-pipeline",
   "kind": "code",                    // code|data|doc|model|experiment|infra|mixed|unknown
-  "category": "amp",                 // 顶层大类，见下方说明
+  "category": "rnaseq",              // 取值见 taxonomy.json
   "status": "paused",                // active|paused|experiment|archived|abandoned|unknown
   "one_liner": "一句话，≤40 字",
   "story": "来龙去脉 3–8 句：为什么建、解决什么问题、从哪来、做到哪、卡在哪、下一步。只写有证据的。",
   "origin": {
     "type": "clone",                 // scratch|clone|fork|derived|imported|unknown
-    "from": "GitHub 上的 smORF-pro",
+    "from": "GitHub 上的 rnaseq-pipeline",
     "first_commit_at": "2026-02-17T01:04:48Z",
     "first_commit_msg": "",
     "created_at_fs": "",             // 无 git 时用最早文件时间
@@ -182,19 +182,26 @@ EXTRA_ROOTS = (可选，其它要顺带扫的目录，一行一个；没有就�
 `relations.type` 只能取：`derived_from`（从它改的）、`supersedes`（取代它）、`duplicate_of`（同一个东西的副本）、`depends_on`（运行依赖）、`shares_data_with`（共用数据）、`same_project`（同一课题的不同实现）。
 跨机器的关系也写进来（`target` 直接用别的机器的 id，比如 `linux-1--smorf-atlas`），汇总时会自动连上。
 
-**`category` 规则**（顶层大类，决定看板的分类索引，只能取这 6 个之一）：
+**`category` 规则**：取值**不要写死**，以 hub 根目录的 `taxonomy.json` 为准（看板的分组、颜色都从那里读）。
+采集前先读一遍 `taxonomy.json`，把其中 `categories[].id` 当作合法枚举；判断不了就填 `other`，并在 `gaps` 里说明。
+
+示例（默认分类体系）：
 
 | 值 | 含义 | 放什么 |
 |---|---|---|
-| `amp` | 主课题 | 产生研究结果的：筛选、实验、测序、质谱分析、候选验证、专题（防御素/作物 SEP…） |
-| `data-tools` | 公用数据 / 方法 / 工具 | 公共数据库、参考基因组索引、谱图库、软件安装、可复用脚本、protocol、流程模板 |
-| `paper` | 论文 / 图表 / 学术服务 | 手稿数据、投稿图、组会汇报、审稿 |
-| `admin` | 行政 · 事务 | 招生、排班、订购、考核报告、活动筹备、零散笔记 |
+| `rnaseq` | 转录组 | 差异表达、定量、可变剪接等产生研究结果的分析 |
+| `genomics` | 基因组与变异 | 变异检测、组装、注释 |
+| `proteomics` | 蛋白组 | 定量、蛋白鉴定、搜库 |
+| `singlecell` | 单细胞 | 聚类、注释、轨迹 |
+| `methods` | 方法与流程 | 可复用的 pipeline、脚本模板、protocol |
+| `data` | 数据与参考库 | 公共数据、参考基因组索引、谱图库 |
+| `paper` | 论文 / 图表 | 手稿数据、投稿图、汇报 |
+| `infra` | 基建与工具 | 服务器、集群、软件安装、环境 |
+| `admin` | 行政 · 事务 | 订购、排班、考核报告 |
 | `learning` | 学习资料 | 电子书、课程、教程 |
-| `other` | 未分类 | 实在判断不了的，并在 `gaps` 里说明 |
+| `other` | 未分类 | 判断不了的，写进 `gaps` |
 
-判断顺序：**先问"它产出的是研究结果，还是支撑研究的东西"**——产出结果归 `amp`，支撑用的数据/工具归 `data-tools`，对外写的文档归 `paper`，跟研究无关的事务归 `admin`。
-反例：`protocol` 是方法不是研究结果 → `data-tools`；`订购表` 是采购事务 → `admin`；`审稿` 是对外学术服务 → `paper`。
+判断顺序：**先问"它产出的是研究结果，还是支撑研究的东西"**——产出结果归对应学科类，支撑用的数据/工具归 `data`/`infra`，对外写的文档归 `paper`，跟研究无关的事务归 `admin`。
 
 `loose_assets` 每项：`{ path, kind, what, belongs_to, size_bytes, last_modified, keep }`，
 `kind` ∈ script|figure|table|document|dataset|archive|binary|other，`keep` ∈ keep|review|delete|unknown。

@@ -40,14 +40,17 @@ const KIND = new Set(["code", "data", "doc", "model", "experiment", "infra", "mi
 
 /* ---------- 分类体系：读 hub 根目录的 taxonomy.json，没有就用默认 ---------- */
 const DEFAULT_TAXONOMY = {
-  groups: { core: "核心课题", collab: "合作课题", other: "其他" },
+  groups: { core: "研究主线", collab: "合作与共享", other: "其他" },
   aliases: {},
   categories: [
-    { id: "research", label: "研究主线", short: "研究", color: "#E64B35", group: "core" },
-    { id: "experiment", label: "实验与数据", short: "实验", color: "#B2182B", group: "core" },
-    { id: "analysis", label: "数据分析", short: "分析", color: "#3C5488", group: "core" },
-    { id: "writing", label: "论文与汇报", short: "论文", color: "#00A087", group: "collab" },
-    { id: "infra", label: "数据与工具", short: "工具", color: "#8491B4", group: "other" },
+    { id: "rnaseq", label: "转录组", short: "转录组", color: "#E64B35", group: "core" },
+    { id: "proteomics", label: "蛋白组", short: "蛋白组", color: "#B2182B", group: "core" },
+    { id: "genomics", label: "基因组与变异", short: "基因组", color: "#1B7837", group: "core" },
+    { id: "singlecell", label: "单细胞", short: "单细胞", color: "#6A3D9A", group: "core" },
+    { id: "methods", label: "方法与流程", short: "方法", color: "#3C5488", group: "collab" },
+    { id: "data", label: "数据与参考库", short: "数据", color: "#4DBBD5", group: "collab" },
+    { id: "infra", label: "基建与工具", short: "基建", color: "#8491B4", group: "other" },
+    { id: "paper", label: "论文与汇报", short: "论文", color: "#00A087", group: "other" },
     { id: "admin", label: "行政与事务", short: "行政", color: "#E18727", group: "other" },
     { id: "learning", label: "学习资料", short: "学习", color: "#91D1C2", group: "other" },
     { id: "other", label: "未归类", short: "未归类", color: "#8B95A1", group: "other" }
